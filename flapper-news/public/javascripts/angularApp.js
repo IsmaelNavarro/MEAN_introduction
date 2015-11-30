@@ -16,14 +16,22 @@ app.config(function($stateProvider, $urlRouterProvider) {
 	$urlRouterProvider.otherwise("home");
 });
 
-app.factory('posts', [function() {
+app.factory('posts', ['$http', function($http) {
+
 	var o = {
 		posts: []
+	};
+
+	o.create = function(post) {
+		return $http.post('/posts', post).success(function(data) {
+			o.posts.push(data);
+
+		});
 	};
 	return o;
 }]);
 
-app.controller("MainCtrl",[
+app.controller("MainCtrl", [
 	'$scope',
 	'posts',
 	function($scope, posts) {
@@ -36,19 +44,9 @@ app.controller("MainCtrl",[
 			if (!$scope.title || $scope.title === '') {
 				return;
 			}
-			$scope.posts.push({
+			posts.create({
 				title: $scope.title,
-				upvotes: 0,
 				link: $scope.link,
-				comments: [{
-					author: 'Joe',
-					body: 'Cool post!',
-					upvotes: 0
-				}, {
-					author: 'Bob',
-					body: 'Great idea but everything is wrong!',
-					upvotes: 0
-				}]
 			});
 			$scope.title = "";
 			$scope.link = "";
@@ -67,14 +65,16 @@ app.controller('PostsCtrl', [
 	function($scope, $stateParams, posts) {
 		$scope.post = posts.posts[$stateParams.id];
 
-		$scope.addComment = function(){
-		  if($scope.body === '') { return; }
-		  $scope.post.comments.push({
-		    body: $scope.body,
-		    author: 'user',
-		    upvotes: 0
-		  });
-		  $scope.body = '';
+		$scope.addComment = function() {
+			if ($scope.body === '') {
+				return;
+			}
+			$scope.post.comments.push({
+				body: $scope.body,
+				author: 'user',
+				upvotes: 0
+			});
+			$scope.body = '';
 		};
 
 	}
